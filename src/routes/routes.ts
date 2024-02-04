@@ -33,9 +33,11 @@ const routes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: false
     },
+    component: () => import('../views/auth/auth.vue'),
     children: [
       {
         path: '',
+
         name: 'Login',
         component: () => import('../views/auth/login.vue')
       },
@@ -80,8 +82,10 @@ export const appRoutes = createRouter({
 
 appRoutes.beforeEach(async (to, from, next) => {
   const access = canAccess()
+  console.log(!access && to.meta.requiresAuth, to)
+  console.log(to.redirectFrom.fullPath)
   if (!access && to.meta.requiresAuth) {
-    next('/auth')
+    next('/auth?')
   } else {
     next()
   }

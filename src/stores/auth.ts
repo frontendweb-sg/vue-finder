@@ -46,10 +46,9 @@ export const useAuthStore = defineStore('auth', {
         const { data, status } = await Api.post('/auth', paylod)
         console.log('data', data, status)
         if (status === 200) {
-          const date = new Date()
-          date.setTime(date.getTime() + data.expireIn * 1000)
+          const expirationDate = new Date().getTime() + data.expireIn * 1000
           localStorage.setItem('token', data.accessToken)
-          localStorage.setItem('expireIn', data.expireIn)
+          localStorage.setItem('expireIn', expirationDate)
           localStorage.setItem('user', JSON.stringify(data))
           this.isAuth = !!data.accessToken
           this.isToken = data.accessToken
@@ -74,27 +73,24 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('token')
       localStorage.removeItem('expireIn')
       localStorage.removeItem('user')
+      clearTimeout(timer)
       this.$reset()
-      console.log('hi logout')
-      //  if (timer) clearTimeout(timer)
     },
     checkAuth() {
       const token = localStorage.getItem('token')
-      const expireIn = new Date(localStorage.getItem('expireIn') as string)
-      console.log(token, expireIn.getTime() - new Date().getTime())
-      if (!token || new Date() > expireIn) {
-        //this.logout()
+      const expireIn = localStorage.getItem('expireIn')
+      const expiresTime = expireIn - new Date().getTime()
+      if (!token) {
+        this.logout()
       }
       this.isAuth = !!token
       this.user = JSON.parse(localStorage.getItem('user') as string)
-      console.log(
-        'expireIn.getTime() - new Date().getTime()',
-        expireIn.getTime() - new Date().getTime()
-      )
-      this.autoLogout(expireIn.getTime() - new Date().getTime())
+
+      this.autoLogout(expiresTime)
     },
     autoLogout(time: number) {
       timer = setTimeout(() => {
+        console.log('hi')
         this.logout()
       }, time)
     }
